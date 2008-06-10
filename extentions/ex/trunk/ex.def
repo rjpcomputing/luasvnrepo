@@ -1,0 +1,3 @@
+LIBRARY ex
+EXPORTS
+    luaopen_ex
