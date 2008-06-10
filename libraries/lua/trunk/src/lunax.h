@@ -24,7 +24,7 @@
 #ifndef LUNAX_H
 #define LUNAX_H
 
-/**	Functions that wrap gtxDeviceComm.
+/**	C++ library for binding classes into Lua.
 	@file
 
 	C++ library for binding classes into Lua. This is heavily inspired by

@@ -4,7 +4,7 @@ project.bindir   = "bin"
 project.libdir   = "lib"
 
 -- Configurations options
-project.configs = { "Release", "DllRelease", "Debug", "DllDebug" }
+project.configs = { "Release", "Debug" }
 
 -- Project Packages
 dopackage( "src/lualib" )

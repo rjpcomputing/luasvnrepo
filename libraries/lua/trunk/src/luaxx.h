@@ -25,11 +25,17 @@
 #ifndef LUAXX_H
 #define LUAXX_H
 
+// Lua
 #include <lua.hpp>
+
+// stl
 #include <string>
 #include <vector>
+#include <map>
 #include <new>
 #include <exception>
+#include <algorithm>
+#include <functional>
 
 #ifdef _MSC_VER
 // Disable warning messages about BOOL being converted to a bool.
@@ -352,6 +358,33 @@ namespace lua
 			return *this;
 		}
 
+		/**	Functor class used to help easily push map items into Lua.
+		*/
+		template< typename T, typename U >
+			class MapPusher : public std::unary_function< std::pair< T, U >, void >
+		{
+		public:
+			/**	Allows this class to be called like a function. */
+			void operator()( const std::pair< T, U >& value )
+			{
+				push( value.first );							// key
+				push( value.second );							// value
+				lua_settable( L, -3 );							// v[key] = value
+			}
+		};
+
+
+		/** Create a new table on the stack and adds all the map @p m items to the table.
+		 * @returns a reference to this lua::state
+		 */
+		template< typename T, typename U >
+		state& push( const std::map< T, U >& m )
+		{
+			lua_newtable( L );
+			std::for_each( m.begin(), m.end(), MapPusher< T, U >() );
+			return *this;
+		}
+
 		/** Get the value at index as the given numeric type.
 		 * @param number where to store the value
 		 * @param index the index to get
@@ -450,6 +483,41 @@ namespace lua
 			return *this;
 		}
 
+		/** Get the value at @p index, which needs to be a table, as a map.
+		 * @param map where to store the value
+		 * @param index the index to get
+		 * @note This function does \em not pop the value from the stack.
+		 * @todo Instead of throwing an exception here, we may just return an
+		 * error code.
+		 *
+		 * @throws lua::bad_conversion if the value on the stack could not be
+		 * converted to the indicated type
+		 * @returns a reference to this lua::state
+		 */
+		template< typename T, typename U >
+		state& to( std::map< T, U >& m, int index = -1 )
+		{
+			if ( lua_istable( L, index ) )
+			{
+				// Loop through the table and get all values.
+				for ( push( nil() ); next(); pop() )
+				{
+					// Get the key from the table.
+					T key;
+					to( key, -2 );
+					// Get the value from the table.
+					U value;
+					to( value, -1 );
+					// Add it to the map.
+					m[key] = value;
+				}
+			}
+			else
+				throw bad_conversion( "Cannot convert value to map" );
+
+			return *this;
+		}
+
 		/** Get the value at index as userdate.
 		 * @param index the index to get
 		 * @note This function does \em not pop the value from the stack.
@@ -459,7 +527,7 @@ namespace lua
 		 * @returns a pointer to the userdata.
 		 */
 		template< typename T >
-		T to( int index = 1 )
+		T to( int index = -1 )
 		{
 			if ( lua_isuserdata( L, index ) )
 				return static_cast< T >( lua_touserdata( L, index ) );
@@ -531,7 +599,7 @@ namespace lua
 				return default_string;
 		}
 
-		/* Simple macro to help create the needed is functions for all the tyoes.
+		/* Simple macro to help create the needed is functions for all the types.
 		 * @param index the index to check
 		 * @returns whether the value at the given index is of @p TYPE
 		 */
@@ -583,6 +651,15 @@ namespace lua
 		 *	@returns whether the value at the given index is a function
 		 */
 		LUAXX_IS( function )
+
+		/** Check if the given index is none or nil.
+		 *	@param index the index to check
+		 *	@returns whether the value at the given index is nil or none
+		 */
+		bool isnoneornil( int index = -1 )
+		{
+			return lua_isnoneornil( L, index );
+		}
 
 		/** Check an argument of the current function.
 		 *	@param narg the argument number to check
