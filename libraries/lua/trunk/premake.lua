@@ -1,6 +1,6 @@
 -- ---------------------------------------------------------------------------
 -- premake.lua - Premake script to generate build files for all the Lua
---              libraries and executables.
+--               libraries and executables.
 --
 -- Copyright (c) 2008 Ryan Pusztai.
 --
