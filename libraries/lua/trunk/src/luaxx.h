@@ -358,19 +358,28 @@ namespace lua
 			return *this;
 		}
 
-		/**	Functor class used to help easily push map items into Lua.
-		*/
+		/**	Functor class used to help easily push map items into Lua. */
 		template< typename T, typename U >
 			class MapPusher : public std::unary_function< std::pair< T, U >, void >
 		{
 		public:
+			/** Constructor that sets the lua state variable. */
+			MapPusher( lua::state* lusState )
+				:
+			m_luaState( lusState )
+			{
+			}
+
 			/**	Allows this class to be called like a function. */
 			void operator()( const std::pair< T, U >& value )
 			{
-				push( value.first );							// key
-				push( value.second );							// value
-				lua_settable( L, -3 );							// v[key] = value
+				m_luaState->push( value.first );						// key
+				m_luaState->push( value.second );						// value
+				lua_settable( m_luaState->L, -3 );						// v[key] = value
 			}
+
+		private:
+			lua::state* m_luaState;
 		};
 
 
@@ -381,7 +390,7 @@ namespace lua
 		state& push( const std::map< T, U >& m )
 		{
 			lua_newtable( L );
-			std::for_each( m.begin(), m.end(), MapPusher< T, U >() );
+			std::for_each( m.begin(), m.end(), MapPusher< T, U >( this ) );
 			return *this;
 		}
 
