@@ -67,7 +67,7 @@ package.links								= { "toLua++Lib", "LuaLib" }
 
 -- COMPILER SPECIFIC SETUP ----------------------------------------------------
 --
-if ( ( target == "gnu" ) or ( target == "cb-gcc" ) ) then
+if ( ( target == "gnu" ) or ( string.find( target, ".*-gcc" ) ) ) then
 	table.insert( package.buildflags, { "extra-warnings" } )
 	table.insert( package.buildoptions, { "-W" } )
 end
