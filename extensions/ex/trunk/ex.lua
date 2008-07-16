@@ -26,7 +26,7 @@ else
 end
 
 if options["ex-shared"] then
-	if ( target == "gnu" ) or ( string.find( target, ".*-gcc" ) ) then
+	if ( target == "gnu" ) or ( string.find( target or "", ".*-gcc" ) ) then
 		table.insert( package.buildflags, { "no-import-lib" } )
 	end
 end
@@ -63,7 +63,7 @@ end
 
 -- COMPILER SPECIFIC SETUP ----------------------------------------------------
 --
-if ( target == "gnu" ) or ( string.find( target, ".*-gcc" ) ) then
+if ( target == "gnu" ) or ( string.find( target or "", ".*-gcc" ) ) then
 	table.insert( package.buildflags, { "extra-warnings", "no-import-lib" } )
 	table.insert( package.buildoptions, { "-W" } )
 end
