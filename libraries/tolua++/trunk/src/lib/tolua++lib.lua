@@ -77,7 +77,7 @@ package.includepaths						= { "../../include", "../../../lua" }
 
 -- COMPILER SPECIFIC SETUP ----------------------------------------------------
 --
-if ( ( target == "gnu" ) or ( string.find( target, ".*-gcc" ) ) ) then
+if ( ( target == "gnu" ) or ( string.find( target or "", ".*-gcc" ) ) ) then
 	table.insert( package.buildflags, { "extra-warnings" } )
 	table.insert( package.buildoptions, { "-W" } )
 end
