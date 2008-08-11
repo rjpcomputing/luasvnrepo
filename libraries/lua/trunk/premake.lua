@@ -36,3 +36,7 @@ dopackage( "src/lualib" )
 dopackage( "src/luaexe" )
 dopackage( "src/luacompiler" )
 
+-- OPTIONS
+addoption( "dynamic-runtime", "Use the dynamicly loadable version of the runtime." )
+
+

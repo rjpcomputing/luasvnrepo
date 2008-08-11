@@ -340,6 +340,20 @@ namespace lua
 			return *this;
 		}
 
+		/** Create a new table on the stack and adds all the pair @p p items to the table.
+		 * @returns a reference to this lua::state
+		 */
+		template< typename T, typename U >
+		state& push( const std::pair< T, U >& p )
+		{
+			lua_newtable( L );
+			push( p.first );									// index
+			push( p.second );									// value, which is a std::pair
+			lua_settable( L, -3 );								// p[index] = v.at( i )
+
+			return *this;
+		}
+
 		/** Create a new table on the stack and adds all the vector @p v items to the table.
 		 * @returns a reference to this lua::state
 		 */
