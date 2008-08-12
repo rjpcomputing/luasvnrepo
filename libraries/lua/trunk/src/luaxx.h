@@ -135,14 +135,14 @@ namespace lua
 
 	/** A memory allocation error.
 	 */
-	class bad_alloc : public exception, std::bad_alloc
+	class bad_alloc : public exception/*, std::bad_alloc*/
 	{
 	public:
 		/// Constructor.
-		bad_alloc() : lua::exception(), std::bad_alloc() { }
+		bad_alloc() : lua::exception()/*, std::bad_alloc()*/ { }
 
 		/// Constructor.
-		explicit bad_alloc( const char* desc ) : lua::exception( desc ), std::bad_alloc() { }
+		explicit bad_alloc( const char* desc ) : lua::exception( desc )/*, std::bad_alloc()*/ { }
 
 		virtual ~bad_alloc() throw() { }
 	};
