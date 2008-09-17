@@ -400,8 +400,8 @@ namespace lua
 		/** Create a new table on the stack and adds all the map @p m items to the table.
 		 * @returns a reference to this lua::state
 		 */
-		template< typename T, typename U >
-		state& push( const std::map< T, U >& m )
+		template< typename T, typename U, typename V, typename W >
+		state& push( const std::map< T, U, V, W >& m )
 		{
 			lua_newtable( L );
 			std::for_each( m.begin(), m.end(), MapPusher< T, U >( this ) );
@@ -517,8 +517,8 @@ namespace lua
 		 * converted to the indicated type
 		 * @returns a reference to this lua::state
 		 */
-		template< typename T, typename U >
-		state& to( std::map< T, U >& m, int index = -1 )
+		template< typename T, typename U, typename V, typename W >
+		state& to( std::map< T, U, V, W >& m, int index = -1 )
 		{
 			if ( lua_istable( L, index ) )
 			{
