@@ -214,6 +214,43 @@ namespace lua
 			luaL_openlibs( L );
 		}
 
+		
+		void StackDump()
+		{
+			int top = lua_gettop( L );
+			for ( int i = 1; i <= top; ++i )
+			{
+				int t = lua_type( L, i );
+				switch ( t )
+				{
+				case LUA_TSTRING:
+					{
+						printf( "'%s'", lua_tostring( L, i ) );
+						break;
+					}
+				case LUA_TBOOLEAN:
+					{
+						printf( lua_toboolean( L, i ) ? "true" : "false" );
+						break;
+					}
+				case LUA_TNUMBER:
+					{
+						printf( "%g", lua_tonumber( L, i ) );
+						break;
+					}
+				default:
+					{
+						printf( "%s", lua_typename( L, t ) );
+						break;
+					}
+				}
+
+				printf( "    " );
+			}
+
+			printf( "\n" );
+		}
+
 		/** Convert a lua::state to a lua_State*.
 		 * This operator allows lua::state to behave like a lua_State
 		 * pointer.
@@ -491,7 +528,7 @@ namespace lua
 			if ( lua_istable( L, index ) )
 			{
 				// Loop through the table and get all values.
-				for ( push( nil() ); next(); pop() )
+				for ( push( nil() ); next( index ); pop() )
 				{
 					// Get the value from the table.
 					T value;
@@ -523,7 +560,7 @@ namespace lua
 			if ( lua_istable( L, index ) )
 			{
 				// Loop through the table and get all values.
-				for ( push( nil() ); next(); pop() )
+				for ( push( nil() ); next( index ); pop() )
 				{
 					// Get the key from the table.
 					T key;
