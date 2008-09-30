@@ -528,7 +528,7 @@ namespace lua
 			if ( lua_istable( L, index ) )
 			{
 				// Loop through the table and get all values.
-				for ( push( nil() ); next( index ); pop() )
+				for ( push( nil() ); next(); pop() )
 				{
 					// Get the value from the table.
 					T value;
