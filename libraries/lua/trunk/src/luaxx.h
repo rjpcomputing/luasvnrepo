@@ -1,6 +1,10 @@
-/*
+/** @file
  * Luaxx, the C++ Lua wrapper library.
- * Copyright (c) 2006-2007 Matthew A. Nicholson
+ * @author Matthew A. Nicholson
+ * @author Ryan Pusztai
+ * @version 0.21
+ *
+ * @copyright 2006-2007 Matthew A. Nicholson
  * Additions by Ryan Pusztai
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -167,8 +171,11 @@ namespace lua
 	/// A Lua nil (this class does not have any data).
 	class nil { };
 
-	/// A lua function (not a cfunction).
+	/// A Lua function (not a cfunction).
 	class function { };
+
+	/// A Lua light userdata (this class does not have any data).
+	class lightuserdata { };
 
 	typedef lua_CFunction cfunction;
 	typedef lua_Integer integer;
@@ -240,7 +247,7 @@ namespace lua
 					}
 				default:
 					{
-						printf( "%s", lua_typename( L, t ) );
+						printf( "{%s}", lua_typename( L, t ) );
 						break;
 					}
 				}
@@ -374,6 +381,28 @@ namespace lua
 		state& push( table )
 		{
 			lua_newtable( L );
+			return *this;
+		}
+
+		/** Pushes the thread represented by @e lState onto the stack.
+		 * @param lState The thread to push on to the stack.
+		 * @returns 1 if this thread is the main thread of its state.
+		 */
+		int push( state lState )
+		{
+			return lua_pushthread( lState );
+		}
+
+		/** Pushes a light userdata onto the stack.
+		 * Userdata represent C values in Lua. A @em light @em userdata represents a pointer.
+		 * It is a value (like a number): you do not create it, it has no individual
+		 * metatable, and it is not collected (as it was never created). A light userdata
+		 * is equal to "any" light userdata with the same C address.
+		 * @param 
+		 */
+		state& push( void* ptr )
+		{
+			lua_pushlightuserdata( L, ptr );
 			return *this;
 		}
 
@@ -595,6 +624,35 @@ namespace lua
 				throw bad_conversion( "Cannot convert value to userdata" );
 		}
 
+		/** Converts the value at the given acceptable index to a Lua thread
+		 * (represented as state*). 
+		 * @param s where to store the value
+		 * @param index the index to get
+		 *
+		 * @note This function does \em not pop the value from the stack.
+		 * @todo Instead of throwing an exception here, we may just return an
+		 * error code.
+		 *
+		 * @throws lua::bad_conversion if the value on the stack could not be
+		 * converted to the indicated type
+		 * @returns a reference to this lua::state
+		 */
+		state& to( state& s, int index = -1 )
+		{
+			if ( lua_isthread( L, index ) )
+			{
+				lua_State* l = lua_tothread( L, index );
+				if ( l != NULL )
+					s = state( l );
+				else
+					throw bad_conversion( "Value not a thread" );
+			}
+			else
+				throw bad_conversion( "Cannot convert value to a thread" );
+
+			return *this;
+		}
+
 		/** Get the value at index as a double.
 		 * @param default_number this value is returned if the conversion fails
 		 * @param index the index to get
@@ -668,6 +726,30 @@ namespace lua
 		{ \
 			return lua_is##TYPE( L, index ); \
 		}
+		
+		/** Check if the given index is a boolean.
+		 *	@param index the index to check
+		 *	@returns whether the value at the given index is a boolean
+		 */
+		LUAXX_IS( boolean )
+		
+		/** Check if the given index is a C function.
+		 *	@param index the index to check
+		 *	@returns whether the value at the given index is a function
+		 */
+		LUAXX_IS( cfunction )
+
+		/** Check if the given index is a function.
+		 *	@param index the index to check
+		 *	@returns whether the value at the given index is a function
+		 */
+		LUAXX_IS( function )
+
+		/** Check if the given index is light userdata.
+		 *	@param index the index to check
+		 *	@returns whether the value at the given index is light userdata
+		 */
+		LUAXX_IS( lightuserdata )
 
 		/** Check if the given index is a nil.
 		 *	@param index the index to check
@@ -675,11 +757,17 @@ namespace lua
 		 */
 		LUAXX_IS( nil )
 
-		/** Check if the given index is a boolean.
+		/** Check if the given index is valid.
 		 *	@param index the index to check
-		 *	@returns whether the value at the given index is a boolean
+		 *	@returns whether the value at the given index is valid
 		 */
-		LUAXX_IS( boolean )
+		LUAXX_IS( none )
+
+		/** Check if the given index is valid or nil.
+		 *	@param index the index to check
+		 *	@returns whether the value at the given index is valid or nil
+		 */
+		LUAXX_IS( noneornil )
 
 		/** Check if the given index is a number.
 		 *	@param index the index to check
@@ -700,29 +788,30 @@ namespace lua
 		 */
 		LUAXX_IS( table )
 
-		/** Check if the given index is a C function.
+		/** Check if the given index is a thread.
 		 *	@param index the index to check
-		 *	@returns whether the value at the given index is a function
+		 *	@returns whether the value at the given index is a thread
 		 */
-		LUAXX_IS( cfunction )
+		LUAXX_IS( thread )
 
-		/** Check if the given index is a function.
+		/** Check if the given index is userdata.
 		 *	@param index the index to check
-		 *	@returns whether the value at the given index is a function
+		 *	@returns whether the value at the given index is userdata
 		 */
-		LUAXX_IS( function )
+		LUAXX_IS( userdata )
 
 		/** Check if the given index is none or nil.
 		 *	@param index the index to check
 		 *	@returns whether the value at the given index is nil or none
 		 */
-		bool isnoneornil( int index = -1 )
-		{
-			return lua_isnoneornil( L, index );
-		}
+		//bool isnoneornil( int index = -1 )
+		//{
+			//return lua_isnoneornil( L, index );
+		//}
 
 		/** Check an argument of the current function.
 		 *	@param narg the argument number to check
+		 * @returns a reference to this lua::state
 		 *
 		 *	This function will throw a lua error if there is no argument at the
 		 *	given position.
@@ -742,6 +831,7 @@ namespace lua
 		/** Check an argument of the current function.
 		 * @param i [OUT] the int to hold the returned value
 		 * @param narg the argument number to check
+		 * @returns a reference to this lua::state
 		 *
 		 * This function checks if the given argument number is an int.
 		 *
@@ -760,6 +850,7 @@ namespace lua
 		/** Check an argument of the current function.
 		 * @param i [OUT] the lua::integer (lua_Integer) to hold the returned value
 		 * @param narg the argument number to check
+		 * @returns a reference to this lua::state
 		 *
 		 * This function checks if the given argument number is an integer.
 		 *
@@ -781,6 +872,7 @@ namespace lua
 		/** Check an argument of the current function.
 		 * @param l [OUT] the long to hold the returned value
 		 * @param narg the argument number to check
+		 * @returns a reference to this lua::state
 		 *
 		 * This function checks if the given argument number is a long.
 		 *
@@ -800,6 +892,7 @@ namespace lua
 		/** Check an argument of the current function.
 		 * @param s [OUT] the string to hold the returned value
 		 * @param narg the argument number to check
+		 * @returns a reference to this lua::state
 		 *
 		 * This function checks if the given argument number is a string.
 		 *
@@ -824,6 +917,7 @@ namespace lua
 		/** Check an argument of the current function.
 		 * @param n [OUT] the lua::number (lua_Number) to hold the returned value
 		 * @param narg the argument number to check
+		 * @returns a reference to this lua::state
 		 *
 		 * This function checks if the given argument number is a lua::number
 		 * (lua_Number, a double by default).
@@ -860,6 +954,7 @@ namespace lua
 		/** Check an argument of the current function.
 		 * @param n [OUT] the lua::number (lua_Number) to hold the returned value
 		 * @param narg the argument number to check
+		 * @returns a reference to this lua::state
 		 *
 		 * This function checks whether the function argument @p narg has type @p t.
 		 * Type @p t can be one of the following @c LUA_TNONE, @c LUA_TNIL, @c LUA_TBOOLEAN,
@@ -877,6 +972,96 @@ namespace lua
 			return *this;
 		}
 
+		/** Returns the type of the value in the given acceptable index, or @c LUA_TNONE
+		 * for a non-valid index (that is, an index to an "empty" stack position).
+		 *
+		 * The following constants defined in lua.h:
+		 * @c LUA_TNIL, @c LUA_TNUMBER, @c LUA_TBOOLEAN, @c LUA_TSTRING, @c LUA_TTABLE,
+		 * @c LUA_TFUNCTION, @c LUA_TUSERDATA, @c LUA_TTHREAD, and @c LUA_TLIGHTUSERDATA.
+		 *
+		 * @param index the index to check.
+		 * @return One of the defined types.
+		 */
+		int type( int index = -1 )
+		{
+			return lua_type( L, index );
+		}
+
+		/** Get the name of the type of the value at the given @p index.
+		 * @param index the index to check.
+		 * @return The type of the value at @p index.
+		 * 
+		 * @note The function name needed to be changed because typename is 
+		 * a C++ keyword.
+		 * @note This is the only typename wrapped because it seems more functional.
+		 *
+		 * @see type
+		 */
+		std::string type_name( int index )
+		{
+			return std::string( luaL_typename( L, index ) );
+		}
+
+		/** Checks whether @p condition is true. If not, raises an error with the 
+		 * following message, where @c func is retrieved from the call stack: 
+		 * @code
+		 * bad argument #<narg> to <func> (<extramsg>)
+		 * @endcode
+		 * @param condition If true this function shows a bad argument message.
+		 * @param narg The argument number to check.
+		 * @param extramsg [DEF] An extra message to print in the bad argument message.
+		 *
+		 * @returns a reference to this lua::state
+		 */
+		state& argcheck( bool condition, int narg, const std::string& extramsg = "" )
+		{
+			int cond = condition ? 1 : 0;
+			luaL_argcheck( L, cond, narg, extramsg.c_str() );
+
+			return *this;
+		}
+
+		/** Generates a bad argument Lua error.
+		 * The error message that is displayed is, where @c func is retrieved from the call stack: 
+		 * @code
+		 * bad argument #<narg> to <func> (<extramsg>)
+		 * @endcode
+		 * @param narg The argument number to check.
+		 * @param extramsg [DEF] An extra message to print in the bad argument message.
+		 *
+		 * @note This function never returns, but it is an idiom to use it in C functions as
+		 * @code
+		 * return lState.argerror(arg)
+		 * @endcode
+		 *
+		 * @returns a reference to this lua::state
+		 */
+		state& argerror( int narg, const std::string& extramsg = "" )
+		{
+			luaL_argerror( L, narg, extramsg.c_str() );
+
+			return *this;
+		}
+
+		/** Generates a bad argument Lua error. 
+		 * The error message is in the following form:
+		 * @code
+		 * location: bad argument narg to 'func' (tname expected, got rt)
+		 * @endcode
+		 * where @c location is produced by @c where, @c func is the name of the current
+		 * function, and @c rt is the type name of the actual argument.
+		 * @param narg The argument number that has the error.
+		 * @param tname The type name that is expected.
+		 *
+		 * @returns a reference to this lua::state
+		 */
+		state& typerror( int narg, const std::string& tname = "" )
+		{
+			luaL_typerror( L, narg, tname.c_str() );
+
+			return *this;
+		}
+
 		/** Generate a Lua error.
 		 * @param message the error message/value
 		 * @note This function is used to raise errors from lua::cfunctions.
@@ -890,21 +1075,23 @@ namespace lua
 			lua_error( L );
 		}
 
-#if 0
-		/** Generate a Lua error.
-		 * @param message the error message/value
-		 * @note This function is used to raise errors from lua::cfunctions.
-		 * @note This function never returns, instead it throws an exception
-		 * caught by the intepreter.
+		/**	Get a string identifying the current position of the control at @p level in
+		 * the call stack and push it onto the stack. Typically this string has the
+		 * following format:
+		 * @code
+		 * chunkname:currentline:
+		 * @endcode
+		 * Level 0 is the running function, level 1 is the function that called the
+		 * running function, etc.
+		 *
+		 * @note This function is used to build a prefix for error messages.
 		 */
-		template<>
-		void error( const std::string& message )
+		state& where( int level = 0 )
 		{
-			push( message );
-			lua_error( L );
-		}
+			luaL_where( L, level );
 
-#endif
+			return *this;
+		}
 
 		/** Call a lua function.
 		 * @param nargs the number of args to pass to the function
@@ -1044,6 +1231,17 @@ namespace lua
 			return *this;
 		}
 
+		/** Creates a new empty table and pushes it onto the stack. The new
+		 * table has space pre-allocated for @e numOfArrayElements array elements
+		 * and @e numOfNonArrayElements non-array elements.
+		 * @returns a reference to this lua::state
+		 */
+		state& createtable( int numOfArrayElements, int numOfNonArrayElements )
+		{
+			lua_createtable( L, numOfArrayElements, numOfNonArrayElements );
+			return *this;
+		}
+
 		/** Create a new table on the stack.
 		 * @returns a reference to this lua::state
 		 */
@@ -1099,7 +1297,7 @@ namespace lua
 		 *
 		 * @note This function may trigger a metamethod for the "index" event.
 		 *
-		 * @see getglobal, gettable
+		 * @see getglobal, gettable, rawget, rawgeti
 		 *
 		 * @returns a reference to this lua::state
 		 */
@@ -1125,13 +1323,101 @@ namespace lua
 		 * @note This function pops the value from the stack.
 		 * @note This function may trigger a metamethod for the "index" event.
 		 *
-		 * @see push, newtable, settable
+		 * @see push, newtable, settable, rawset, rawseti
 		 *
 		 * @returns a reference to this lua::state
 		 */
 		state& setfield( const std::string& key, int index = -2 )
 		{
 			lua_setfield( L, index, key.c_str() );
+			return *this;
+		}
+
+		/** Get a value from a table on the stack, but does a raw access.
+		 * @param index the index the table is stored at
+		 *
+		 * This function gets a value from the table at the given index and
+		 * pushes it onto the stack, but does it without triggering metamethods.
+		 *
+		 * @note You should have already pushed the key used to reference this
+		 * value onto the stack before calling this function.
+		 * 
+		 * @see gettable, getfield
+		 *
+		 * @returns a reference to this lua::state
+		 */
+		state& rawget( int index = -2 )
+		{
+			lua_rawget( L, index );
+			return *this;
+		}
+
+		/** Set a value in a table, but does a raw assignment.
+		 * @param index the index the table is stored at
+		 *
+		 * This function sets a value in a table stored at the given index, but
+		 * does not trigger any metamethod calls.
+		 *
+		 * @note The key and value to be used should have already been pushed
+		 * on the stack in that order.
+		 *
+		 * @see settable, setfield
+		 *
+		 * @returns a reference to this lua::state
+		 */
+		state& rawset( int index = -3 )
+		{
+			lua_rawset( L, index );
+			return *this;
+		}
+
+		/** Pushes onto the stack the value @e t[n], where @e t is the value at the
+		 * given valid @e index.
+		 * The access is raw; that is, it does not invoke metamethods. 
+		 * @param key the number key in the table that you want to retieve the
+		 * value for.
+		 * @param index the index the table is stored at
+		 *
+		 * This function gets a value from the table at the given index and
+		 * pushes it onto the stack.
+		 *
+		 * @note You should have the table that you want to get the field
+		 * from on the top of the stack.
+		 *
+		 * @see getglobal, gettable, rawget
+		 *
+		 * @returns a reference to this lua::state
+		 */
+		state& rawgeti( int key, int index = -1 )
+		{
+			lua_rawgeti( L, index, key );
+			return *this;
+		}
+
+		/** Does the equivalent of t[n] = v, where t is the value at the given
+		 * valid index and v is the value at the top of the stack. The assignment
+		 * is raw; that is, it does not invoke metamethods.
+		 * @param key the key in the table that you want to set the
+		 * value for.
+		 * @param index the index the table is stored at
+		 *
+		 * Does the equivalent to @p t[k] = v, where @p t is the value at
+		 * the given valid index @p index and @p v is the value at the top
+		 * of the stack.
+		 *
+		 * @note The value you want to set in the table needs to be on the
+		 * top of the stack. The table needs to be located at @p index on
+		 * the stack.
+		 *
+		 * @note This function pops the value from the stack.
+		 *
+		 * @see push, newtable, settable, rawset, rawseti
+		 *
+		 * @returns a reference to this lua::state
+		 */
+		state& rawseti( int key, int index = -2 )
+		{
+			lua_rawseti( L, index, key );
 			return *this;
 		}
 
@@ -1171,6 +1457,71 @@ namespace lua
 			return lua_next( L, index );
 		}
 
+		/** Create a new thread on the stack, and returns a pointer to a lua::state
+		 * that represents this new thread. The new state returned by
+		 * this function shares with the original state all global objects (such
+		 * as tables), but has an independent execution stack.
+		 * @returns The new lua::state that represents a Lua thread.
+		 */
+		state newthread()
+		{
+			return state( lua_newthread( L ) );
+		}
+
+		/** Starts and resumes a coroutine in a given thread.
+		 * To start a coroutine, you first create a new thread (see newthread);
+		 * then you push onto its stack the main function plus any arguments; then
+		 * you call resume. This call returns when the coroutine suspends or finishes
+		 * its execution. When it returns, the stack contains all values passed to yield,
+		 * or all values returned by the body function.
+		 *
+		 * @note In case of errors, the stack is not unwound, so you can use the debug API
+		 * over it. The error message is on the top
+		 * of the stack. To restart a coroutine, you put on its stack only the values to be
+		 * passed as results from yield, and then call resume.
+		 *
+		 * @param narg the number of arguments that the main function, of the thread, will use.
+		 * @return LUA_YIELD if the coroutine yields, 0 if the coroutine finishes its execution
+		 * without errors, or an error code in case of errors.
+		 * @see pcall
+		 */
+		int resume( int narg )
+		{
+			return lua_resume( L, narg );
+		}
+
+		/** Yields a coroutine. This function should only be called as the return expression
+		 * of a C function, as follows: 
+		 * @code
+		 * return lState.yield( nresults );
+		 * @endcode
+		 * When a C function calls yield in that way, the running coroutine suspends
+		 * its execution, and the call to resume that started this coroutine returns.
+		 * @param nresults the number of values from the stack that are passed
+		 * as results to resume.
+		 * @return the number of results on the stack. (Not positive on this because
+		 * the manual does not say.)
+		 */
+		int yield( int nresults )
+		{
+			return lua_yield( L, nresults );
+		}
+
+		/** Exchange values between different threads of the same global state.
+		 * This function pops @p n values from the stack @c from, and pushes them onto the
+		 * stack @c to.
+		 * @param from lua::state to copy from.
+		 * @param to lua::state to copy to.
+		 * @param n The number of elements to move.
+		 * @returns a reference to this lua::state
+		 */
+		state& xmove( state from, state to, int n )
+		{
+			lua_xmove( from, to, n );
+
+			return *this;
+		}
+
 		/** Creates a new metatable on the stack.
 		 * @param name the name to give the metatable.
 		 *
@@ -1190,6 +1541,23 @@ namespace lua
 		state& getmetatable( const std::string& name )
 		{
 			luaL_getmetatable( L, name.c_str() );
+			return *this;
+		}
+
+		/** Gets a metatable's field by name and puts it on the stack.
+		 * @param name the name of the metatable to retrieve.
+		 * @param obj The index of the object to get the metafeild from it's metatable.
+		 *
+		 * @returns a reference to this lua::state
+		 * @throws lua::bad_conversion if the object doesn't contain a metatable.
+		 * @todo This might not be a good thing to throw when the object doesn't have
+		 * a metatable.
+		 * converted to the indicated type
+		 */
+		state& getmetafield( const std::string& name, int obj = -1 )
+		{
+			if ( 0 == luaL_getmetafield( L, obj, name.c_str() ) )
+				throw bad_conversion( "The object doesn't contain a metatable" );
 			return *this;
 		}
 
@@ -1234,7 +1602,6 @@ namespace lua
 			lua_setglobal( L, name.c_str() );
 			return *this;
 		}
-
 
 		/**	Allocate a new block of memory with the given @p size,
 		 * pushes onto the stack a new full userdata with the block address,
