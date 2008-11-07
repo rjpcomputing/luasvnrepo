@@ -184,6 +184,18 @@ namespace lua
 
 	const int multiret = LUA_MULTRET;
 
+	/** @internal
+	 * Writer.
+	 */
+	static int writer( lua_State*, const void* p, size_t sz, void* ud)
+	{
+		std::vector< char >* data = reinterpret_cast< std::vector< char >* >( ud );
+		const char* tmp = reinterpret_cast< const char* >( p );
+		data->insert( data->end(), tmp, tmp + sz );
+
+		return 0;
+	}
+
 	/** This is the Luaxx equivalent of lua_State.
 	 * The functions provided by this class, closely resemble those of the Lua C
 	 * API.
@@ -1093,6 +1105,37 @@ namespace lua
 			return *this;
 		}
 
+		/**	Produces the pseudo-indices for the upvalues created when pushing
+		 * a cclosure. The first value associated with a function is at position
+		 * lua_upvalueindex(1), and so on. Any access to lua_upvalueindex(n),
+		 * where n is greater than the number of upvalues of the current function
+		 * (but not greater than 256), produces an acceptable (but invalid) index.
+		 * @param idx Index of the upvalue to get.
+		 * @return The psuedo-index of the upvalue located at @p idx.
+		 *
+		 * @see push( cfunction, int )
+		 */
+		int upvalueindex( int idx )
+		{
+			return lua_upvalueindex( idx );
+		}
+
+		/** Dumps a function as a binary chunk. Receives a Lua function on the top
+		 * of the stack and produces a binary chunk that, if loaded again, results
+		 * in a function equivalent to the one dumped.
+		 */
+		std::vector< char > dump()
+		{
+			if ( !isfunction() )
+			{
+				throw syntax_error( "Function expected in dump()." );
+			}
+
+			std::vector< char > buf;
+			lua_dump( L, &writer, &buf );
+			return buf;
+		}
+
 		/** Call a lua function.
 		 * @param nargs the number of args to pass to the function
 		 * @param nresults the number of values to return from the function
@@ -1627,15 +1670,30 @@ namespace lua
 			return *this;
 		}
 
-		/** Load a string as a Lua chunk.
-		 * @param s the string to load
-		 * @note After the data is loaded lua_pcall() is called.
+		/** Load a null terminated string as a Lua chunk. After the
+		 * data is loaded it pushes the compiled chunk as a Lua function
+		 * on top of the stack.
+		 * @param s the string to load.
 		 * @returns a reference to this lua::state
+		 * 
+		 * @see dostring
 		 */
 		state& loadstring( const std::string& s )
 		{
 			throw_error( luaL_loadstring( L, s.c_str() ) );
-			throw_error( lua_pcall( L, 0, 0, 0 ) );
+			return *this;
+		}
+
+		/** Load and runs a string as a Lua chunk.
+		 * @param s the string to load
+		 * @note After the data is loaded lua_pcall() is called.
+		 * @returns a reference to this lua::state
+		 * 
+		 * @see loadstring
+		 */
+		state& dostring( const std::string& s )
+		{
+			throw_error( luaL_dostring( L, s.c_str() ) );
 			return *this;
 		}
 
@@ -1671,6 +1729,32 @@ namespace lua
 		state& registerglobalfunction( const std::string& name, cfunction f )
 		{
 			lua_register( L, name.c_str(), f );
+			return *this;
+		}
+
+		/** Loads a buffer as a Lua chunk.
+		 * @param begin an iterator to the start of the sequence
+		 * @param end an iterator to the end of the sequence (one past the
+		 * end)
+		 *
+		 * This function takes a sequence of data and attempts to convert it
+		 * into a Lua chunk.  The type of data passed must be able to be
+		 * converted into an 8-bit char.
+		 *
+		 * @note This function should automatically detect if the data is text
+		 * or binary.
+		 *
+		 * @returns a reference to this lua::state
+		 */
+		template< typename iterator >
+		state& loadbuffer( iterator begin, iterator end )
+		{
+			// convert the data to characters
+			std::vector<char> chunk( begin, end );
+
+			// Here we use the address of the first element of our vector.
+			// This works because the data in std::vectors is contiguous.
+			throw_error( luaL_loadbuffer( L, &( *chunk.begin() ), chunk.size(), NULL ) );
 			return *this;
 		}
 
