@@ -33,6 +33,7 @@
 #include <lua.hpp>
 
 // stl
+#include <sstream>
 #include <string>
 #include <vector>
 #include <map>
@@ -233,9 +234,9 @@ namespace lua
 			luaL_openlibs( L );
 		}
 
-		
-		void StackDump()
+		std::string StringStackDump()
 		{
+			std::stringstream out;
 			int top = lua_gettop( L );
 			for ( int i = 1; i <= top; ++i )
 			{
@@ -244,30 +245,34 @@ namespace lua
 				{
 				case LUA_TSTRING:
 					{
-						printf( "'%s'", lua_tostring( L, i ) );
+						out << lua_tostring( L, i );
 						break;
 					}
 				case LUA_TBOOLEAN:
 					{
-						printf( lua_toboolean( L, i ) ? "true" : "false" );
+						out << ( lua_toboolean( L, i ) ? "true" : "false" );
 						break;
 					}
 				case LUA_TNUMBER:
 					{
-						printf( "%g", lua_tonumber( L, i ) );
+						out << lua_tonumber( L, i );
 						break;
 					}
 				default:
 					{
-						printf( "{%s}", lua_typename( L, t ) );
+						out << "{" << lua_typename( L, t ) << "}";
 						break;
 					}
 				}
 
-				printf( "    " );
+				out << "    ";
 			}
+			return out.str();
+		}
 
-			printf( "\n" );
+		void StackDump()
+		{
+			printf("%s\n", StringStackDump().c_str() );
 		}
 
 		/** Convert a lua::state to a lua_State*.
@@ -619,7 +624,8 @@ namespace lua
 			return *this;
 		}
 
-		/** Get the value at index as userdate.
+		/** Get the value at index as userdate. If the value is a light userdata,
+		 * returns its pointer.
 		 * @param index the index to get
 		 * @note This function does \em not pop the value from the stack.
 		 *
