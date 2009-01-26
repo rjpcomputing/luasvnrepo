@@ -2,7 +2,7 @@
 -- luacompiler.lua - Premake script to generate build files for the Lua
 --                   compiler.
 --
--- Copyright (c) 2008 Ryan Pusztai.
+-- Copyright (c) 2008-2009 Ryan Pusztai.
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -66,7 +66,8 @@ package.links								= { "LuaLib" }
 --
 if ( ( target == "gnu" ) or ( string.find( target or "", ".*-gcc" ) ) ) then
 	table.insert( package.buildflags, "extra-warnings" )
-	table.insert( package.buildoptions, { "-W" } )
+	table.insert( package.buildoptions, { "-W", "-mthreads" } )
+	table.insert( package.linkoptions, { "-mthreads" } )
 	-- Set the objects directories.
 	package.objdir							= ".obj"
 end
@@ -83,6 +84,10 @@ if ( OS == "windows" ) then											-- WINDOWS
 	--if ( options["lua-shared"] ) then
 		--table.insert( package.defines, { "LUA_BUILD_AS_DLL" } )
 	--end
+	if target == "gnu" or string.find( target or "", ".*-gcc" ) then
+		table.insert( package.buildoptions, { "-mthreads" } )
+		table.insert( package.linkoptions, { "-mthreads" } )
+	end
 elseif ( OS == "linux" ) then											-- LINUX
 	table.insert( package.defines, { "LUA_USE_LINUX" } )
 	table.insert( package.links, { "dl", "m", "readline", "history", "ncurses" } )
