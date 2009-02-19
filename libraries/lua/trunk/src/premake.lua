@@ -32,9 +32,9 @@ project.libdir   = "lib"
 project.configs = { "Release", "Debug" }
 
 -- Project Packages
-dopackage( "src/lualib" )
-dopackage( "src/luaexe" )
-dopackage( "src/luacompiler" )
+dopackage( "lualib.lua" )
+dopackage( "luaexe.lua" )
+dopackage( "luacompiler.lua" )
 
 -- OPTIONS
 addoption( "dynamic-runtime", "Use the dynamicly loadable version of the runtime." )
