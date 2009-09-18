@@ -1,0 +1,65 @@
+<html xmlns:tomboy="http://beatniksoftware.com/tomboy" xmlns:link="http://beatniksoftware.com/tomboy/link" xmlns:size="http://beatniksoftware.com/tomboy/size"><head><META http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Building wxLua</title><style type="text/css">
+        
+	body {  }
+	h1 { font-size: xx-large;
+     	     font-weight: bold;
+     	     border-bottom: 1px solid black; }
+	div.note { overflow: auto;
+		   position: relative;
+		   display: block;
+		   padding: 5pt;
+		   margin: 5pt; 
+		   white-space: -moz-pre-wrap; /* Mozilla */
+ 	      	   white-space: -pre-wrap;     /* Opera 4 - 6 */
+ 	      	   white-space: -o-pre-wrap;   /* Opera 7 */
+ 	      	   white-space: pre-wrap;      /* CSS3 */
+ 	      	   word-wrap: break-word;      /* IE 5.5+ */ }
+	</style></head><body><div class="note" id="Building wxLua" style="width:810;"><a name="#Building wxLua"></a><h1>Building wxLua</h1>This article describes the steps required to build wxLua under Linux and Windows.
+
+<span style="font-size:xx-large">Linux Prerequisites</span>
+
+<span style="font-size:large">Install the required packages</span>
+<ul><li style="list-style-type: none" dir="ltr"><b>Programs</b>
+<ul><li dir="ltr">Premake
+<ul><li dir="ltr">Download this from the main website <a style="color:#3465A4" href="http://premake.sf.net">http://premake.sf.net</a>
+</li><li dir="ltr">Install it into your system.
+<ul><li dir="ltr">$ <span style="font-family:monospace">sudo cp premake<a style="color:#3465A4" href=" /usr/bin"> /usr/bin</a></span>
+</li></ul></li></ul></li><li dir="ltr">CVS
+<ul><li dir="ltr">Use apt-get to install the <span style="font-family:monospace">cvs</span> package.
+</li></ul></li><li dir="ltr">SVN
+<ul><li dir="ltr">Use apt-get to install the <span style="font-family:monospace">subversion</span> package.
+</li></ul></li></ul></li><li style="list-style-type: none" dir="ltr"><b>Libraries</b>
+<ul><li dir="ltr">liblua5.1-0-dev
+</li><li dir="ltr">mesa-common-dev
+</li><li dir="ltr">libglu1-mesa-dev</li></ul></li></ul>
+
+<span style="font-size:xx-large">Steps</span> (Works for all platforms)
+
+<span style="font-size:large">Get the wxLua source code</span>
+<ul><li dir="ltr">Open a terminal and navigate to where you want to store the source for wxLua.
+</li><li dir="ltr">Enter the following lines in the terminal to <i>checkout</i> wxLua source.
+<ul><li dir="ltr">$ <span style="font-family:monospace">cvs -<a style="color:#3465A4" href="d:pserver:anonymous@wxlua.cvs.sourceforge.net:/cvsroot/wxlua">d:pserver:anonymous@wxlua.cvs.sourceforge.net:/cvsroot/wxlua</a></span><span style="font-family:monospace"> login</span>
+</li><li dir="ltr">$ <span style="font-family:monospace">cvs -z3 -<a style="color:#3465A4" href="d:pserver:anonymous@wxlua.cvs.sourceforge.net:/cvsroot/wxlua">d:pserver:anonymous@wxlua.cvs.sourceforge.net:/cvsroot/wxlua</a></span><span style="font-family:monospace"> co -P wxLua</span></li></ul></li></ul>
+
+<span style="font-size:large">Generate the build files</span>
+<ul><li dir="ltr">In the open terminal and navigate to the <span style="font-family:monospace">build</span> directory.
+</li><li dir="ltr">Checkout the Premake build files from <a style="color:#3465A4" href="http://rjpcomputing.homeip.net/svn/lua/libraries/wxlua/build/premake">http://rjpcomputing.homeip.net/svn/lua/libraries/wxlua/build/premake</a>
+<ul><li dir="ltr">$ <span style="font-family:monospace">svn co <a style="color:#3465A4" href="http://rjpcomputing.homeip.net/svn/lua/libraries/wxlua/build/premake">http://rjpcomputing.homeip.net/svn/lua/libraries/wxlua/build/premake</a></span><span style="font-family:monospace"> premake</span>
+</li></ul></li><li dir="ltr">Navigate into the <span style="font-family:monospace">premake</span> directory that was just created
+<ul><li dir="ltr">$ <span style="font-family:monospace">cd premake</span>
+</li></ul></li><li dir="ltr">Enter one of the following commands to generate the specific version of build files you require.
+<ul><li dir="ltr">Code::Blocks
+<ul><li dir="ltr">$ <span style="font-family:monospace">premake --target cb-gcc</span>
+</li></ul></li><li dir="ltr">GNU makefiles
+<ul><li dir="ltr">$ <span style="font-family:monospace">premake --target gnu</span>
+</li></ul></li><li dir="ltr">Visual C++ 2003 (.NET)
+<ul><li dir="ltr">$ <span style="font-family:monospace">premake --target vs2003</span>
+</li></ul></li><li dir="ltr">Visual C++ 2005
+<ul><li dir="ltr">$ <span style="font-family:monospace">premake --target vs2005</span>
+</li></ul></li><li dir="ltr">Visual C++ 2008
+<ul><li dir="ltr">$ <span style="font-family:monospace">premake --target vs2008</span></li></ul></li></ul></li></ul>
+
+<span style="font-size:large">Build wxLua</span>
+<ul><li dir="ltr">In the open terminal type <span style="font-family:monospace">make</span>.
+<ul><li style="list-style-type: none" dir="ltr"><span style="font-family:monospace">$ make</span>
+</li></ul></li><li dir="ltr">After the build process completes a new <span style="font-family:monospace">wx.so/dll</span> will be created in the <span style="font-family:monospace">bin</span> directory under the root of the wxLua source tree. Copy it where every you need wxLua as a Lua module.</li></ul></div></body></html>
