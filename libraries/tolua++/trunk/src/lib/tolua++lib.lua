@@ -96,6 +96,9 @@ end
 if ( OS == "windows" ) then											-- WINDOWS
 	table.insert( package.defines, { "_WIN32", "WIN32", "_WINDOWS" } )
 elseif ( OS == "linux" ) then										-- LINUX
-	--table.insert( package.links, { "pthread", "dl" } )
+	-- lib is only needed because Premake automatically adds the -fPIC to dlls
+	if ( "lib" == package.kind ) then
+		table.insert( package.buildoptions, { "-fPIC" } )
+	end
 else																-- MACOSX
 end
