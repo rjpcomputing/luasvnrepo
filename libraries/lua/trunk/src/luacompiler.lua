@@ -66,8 +66,7 @@ package.links								= { "LuaLib" }
 --
 if ( ( target == "gnu" ) or ( string.find( target or "", ".*-gcc" ) ) ) then
 	table.insert( package.buildflags, "extra-warnings" )
-	table.insert( package.buildoptions, { "-W", "-mthreads" } )
-	table.insert( package.linkoptions, { "-mthreads" } )
+	table.insert( package.buildoptions, { "-W" } )
 	-- Set the objects directories.
 	package.objdir							= ".obj"
 end
