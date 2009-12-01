@@ -415,7 +415,7 @@ namespace lua
 		 * It is a value (like a number): you do not create it, it has no individual
 		 * metatable, and it is not collected (as it was never created). A light userdata
 		 * is equal to "any" light userdata with the same C address.
-		 * @param 
+		 * @param
 		 */
 		state& push( void* ptr )
 		{
@@ -643,7 +643,7 @@ namespace lua
 		}
 
 		/** Converts the value at the given acceptable index to a Lua thread
-		 * (represented as state*). 
+		 * (represented as state*).
 		 * @param s where to store the value
 		 * @param index the index to get
 		 *
@@ -744,13 +744,13 @@ namespace lua
 		{ \
 			return lua_is##TYPE( L, index ); \
 		}
-		
+
 		/** Check if the given index is a boolean.
 		 *	@param index the index to check
 		 *	@returns whether the value at the given index is a boolean
 		 */
 		LUAXX_IS( boolean )
-		
+
 		/** Check if the given index is a C function.
 		 *	@param index the index to check
 		 *	@returns whether the value at the given index is a function
@@ -1008,20 +1008,20 @@ namespace lua
 		/** Get the name of the type of the value at the given @p index.
 		 * @param index the index to check.
 		 * @return The type of the value at @p index.
-		 * 
-		 * @note The function name needed to be changed because typename is 
+		 *
+		 * @note The function name needed to be changed because typename is
 		 * a C++ keyword.
 		 * @note This is the only typename wrapped because it seems more functional.
 		 *
 		 * @see type
 		 */
-		std::string type_name( int index )
+		std::string type_name( int index = -1 )
 		{
 			return std::string( luaL_typename( L, index ) );
 		}
 
-		/** Checks whether @p condition is true. If not, raises an error with the 
-		 * following message, where @c func is retrieved from the call stack: 
+		/** Checks whether @p condition is true. If not, raises an error with the
+		 * following message, where @c func is retrieved from the call stack:
 		 * @code
 		 * bad argument #<narg> to <func> (<extramsg>)
 		 * @endcode
@@ -1040,7 +1040,7 @@ namespace lua
 		}
 
 		/** Generates a bad argument Lua error.
-		 * The error message that is displayed is, where @c func is retrieved from the call stack: 
+		 * The error message that is displayed is, where @c func is retrieved from the call stack:
 		 * @code
 		 * bad argument #<narg> to <func> (<extramsg>)
 		 * @endcode
@@ -1061,7 +1061,7 @@ namespace lua
 			return *this;
 		}
 
-		/** Generates a bad argument Lua error. 
+		/** Generates a bad argument Lua error.
 		 * The error message is in the following form:
 		 * @code
 		 * location: bad argument narg to 'func' (tname expected, got rt)
@@ -1390,7 +1390,7 @@ namespace lua
 		 *
 		 * @note You should have already pushed the key used to reference this
 		 * value onto the stack before calling this function.
-		 * 
+		 *
 		 * @see gettable, getfield
 		 *
 		 * @returns a reference to this lua::state
@@ -1422,7 +1422,7 @@ namespace lua
 
 		/** Pushes onto the stack the value @e t[n], where @e t is the value at the
 		 * given valid @e index.
-		 * The access is raw; that is, it does not invoke metamethods. 
+		 * The access is raw; that is, it does not invoke metamethods.
 		 * @param key the number key in the table that you want to retieve the
 		 * value for.
 		 * @param index the index the table is stored at
@@ -1540,7 +1540,7 @@ namespace lua
 		}
 
 		/** Yields a coroutine. This function should only be called as the return expression
-		 * of a C function, as follows: 
+		 * of a C function, as follows:
 		 * @code
 		 * return lState.yield( nresults );
 		 * @endcode
@@ -1615,7 +1615,7 @@ namespace lua
 		 *
 		 * @returns a reference to this lua::state
 		 */
-		state& setmetatable( int index )
+		state& setmetatable( int index = -2 )
 		{
 			lua_setmetatable( L, index );
 			return *this;
@@ -1681,7 +1681,7 @@ namespace lua
 		 * on top of the stack.
 		 * @param s the string to load.
 		 * @returns a reference to this lua::state
-		 * 
+		 *
 		 * @see dostring
 		 */
 		state& loadstring( const std::string& s )
@@ -1694,7 +1694,7 @@ namespace lua
 		 * @param s the string to load
 		 * @note After the data is loaded lua_pcall() is called.
 		 * @returns a reference to this lua::state
-		 * 
+		 *
 		 * @see loadstring
 		 */
 		state& dostring( const std::string& s )
@@ -1799,6 +1799,34 @@ namespace lua
 		size_t objlen( int index = -1 )
 		{
 			return lua_objlen( L, index );
+		}
+
+		/** Pops a table from the stack and sets it as the new environment for the value at
+		 * the given @p index.
+		 * @param index the stack index the function is at.
+		 * @throws If the value at the given index is neither a function nor a thread nor a
+		 *		userdata.
+		 * @returns a reference to this lua::state
+		 */
+		state& setfenv( int index = -2 )
+		{
+			int result = lua_setfenv( L, index );
+			if ( result == 0 )
+			{
+				throw runtime_error( "Error setting environment on non-function" );
+			}
+			return *this;
+		}
+
+		/** Pushes onto the stack the environment table of the value at the given @p index.
+		 * @param index the stack index the function is at.
+		 *
+		 * @returns a reference to this lua::state
+		 */
+		state& getfenv( int index = -1 )
+		{
+			lua_getfenv( L, index );
+			return *this;
 		}
 
 	private:
