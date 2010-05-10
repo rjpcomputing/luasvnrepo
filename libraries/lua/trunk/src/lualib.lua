@@ -30,6 +30,7 @@ addoption( "lua-cpp", "Compile Lua library as C++ code." )
 -- GENERAL SETUP -------------------------------------------------------------
 --
 package.name								= "LuaLib"
+package.guid								= "E0E342D0-1638-6F40-A4AF-A16DE1D52989"
 if ( options["lua-cpp"] ) then
 	package.language						= "c++"
 else
