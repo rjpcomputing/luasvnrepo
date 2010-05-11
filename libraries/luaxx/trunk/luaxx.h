@@ -953,7 +953,7 @@ namespace lua
 
 		/** Check an argument of the current function.
 		 * @param narg The argument number to check
-		 * @param name The type name of the userdata to check.
+		 * @param tname The type name of the userdata to check.
 		 *
 		 * Checks whether the function argument @p narg is a userdata of the
 		 * type @p tname.
@@ -970,8 +970,8 @@ namespace lua
 		}
 
 		/** Check an argument of the current function.
-		 * @param n [OUT] the lua::number (lua_Number) to hold the returned value
 		 * @param narg the argument number to check
+		 * @param t the expected type.
 		 * @returns a reference to this lua::state
 		 *
 		 * This function checks whether the function argument @p narg has type @p t.
@@ -1826,6 +1826,39 @@ namespace lua
 		state& getfenv( int index = -1 )
 		{
 			lua_getfenv( L, index );
+			return *this;
+		}
+
+		/** Creates and returns a reference, in the table at @p index, for the object at the
+		 * top of the stack (and pops the object). A reference is a unique integer key. As long
+		 * as you do not manually add integer keys into table  at @p index, luaL_ref ensures the
+		 * uniqueness of the key it returns. You can retrieve an object referred by reference @p ref by
+		 * calling rawgeti( tbl, ref ). Function luaL_unref frees a reference and its associated object.
+		 *
+		 * If the object at the top of the stack is nil, ref returns the constant LUA_REFNIL.
+		 * The constant LUA_NOREF is guaranteed to be different from any reference returned by ref.
+		 * @param index the stack index the table is at.
+		 *
+		 * @returns a unique integer key used as a reference.
+		 * @see unref
+		 */
+		int ref( int index = LUA_REGISTRYINDEX )
+		{
+			return luaL_ref( L, index );
+		}
+
+		/** Releases reference @p ref from the table at @p index. The entry is removed from the table,
+		 * so that the referred object can be collected. The reference @p ref is also freed to be used again.
+		 *
+		 * If @p ref is LUA_NOREF or LUA_REFNIL, luaL_unref does nothing.
+		 * @param index the stack index of the tble that contains the reference to release.
+		 *
+		 * @returns a reference to this lua::state
+		 * @see ref
+		 */
+		state& unref( int ref, int index = LUA_REGISTRYINDEX )
+		{
+			luaL_unref( L, index, ref );
 			return *this;
 		}
 
