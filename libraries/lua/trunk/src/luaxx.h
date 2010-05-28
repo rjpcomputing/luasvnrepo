@@ -245,12 +245,12 @@ namespace lua
 				{
 				case LUA_TSTRING:
 					{
-						out << lua_tostring( L, i );
+						out << "\"" << lua_tostring( L, i ) << "\"";
 						break;
 					}
 				case LUA_TBOOLEAN:
 					{
-						out << ( lua_toboolean( L, i ) ? "true" : "false" );
+						out << ( lua_toboolean( L, i ) ? "<true>" : "<false>" );
 						break;
 					}
 				case LUA_TNUMBER:
@@ -258,9 +258,14 @@ namespace lua
 						out << lua_tonumber( L, i );
 						break;
 					}
+				case LUA_TTABLE:
+					{
+						out << "{table}";
+						break;
+					}
 				default:
 					{
-						out << "{" << lua_typename( L, t ) << "}";
+						out << "<" << lua_typename( L, t ) << ">";
 						break;
 					}
 				}
