@@ -25,7 +25,6 @@ newoption
 --
 project		"LuaLib"
 uuid		"E0E342D0-1638-6F40-A4AF-A16DE1D52989"
-configurations { "Debug", "Release" }
 targetname 	"lua5.1"
 
 if ( _OPTIONS["lua-cpp"] ) then
@@ -47,11 +46,15 @@ excludes 	{ "lua.c", "luac.c" }
 
 -- COMPILER SPECIFIC SETUP ----------------------------------------------------
 --
-if ( ( _ACTION == "gnu" ) or ( string.find( _ACTION or "", ".*-gcc" ) ) ) then
-	flags { "extrawarnings" }
+function ActionUsesGCC()
+	return ("gmake" == _ACTION or "codelite" == _ACTION or "codeblocks" == _ACTION or "xcode3" == _ACTION)
+end
+
+if ActionUsesGCC() then
+	flags { "NoImportLib", "extrawarnings" }
 	buildoptions { "-W" }
 	-- Set the objects directories.
-	objdir { ".obj" }
+	objdir ".obj"
 end
 
 if ( ( _ACTION == "vs2005" ) or ( _ACTION == "vs2008" ) ) then
@@ -66,7 +69,7 @@ if ( os.get() == "windows" ) then											-- WINDOWS
 	if ( _OPTIONS["lua-shared"] ) then
 		defines { "LUA_BUILD_AS_DLL" }
 	end
-	if _ACTION == "gnu" or string.find( _ACTION or "", ".*-gcc" ) then
+	if ActionUsesGCC() then
 		buildoptions { "-mthreads" }
 		linkoptions { "-mthreads" }
 	end
@@ -87,7 +90,7 @@ end
 --
 -- Build Flags
 if ( _OPTIONS["lua-shared"] ) then
-	if ( _ACTION == "gnu" or string.find( _ACTION or "", ".*-gcc" ) ) then
+	if ActionUsesGCC() then
 		flags { "noimportlib" }
 	end
 end

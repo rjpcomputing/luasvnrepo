@@ -13,8 +13,6 @@ project		"Lua"
 language	"c"
 kind		"ConsoleApp"
 targetname	"lua"
-configurations { "Debug", "Release" }
-
 
 -- Files
 files		{ "lua.c", "*.h" }
@@ -35,7 +33,11 @@ links	{ "LuaLib" }
 
 -- COMPILER SPECIFIC SETUP ----------------------------------------------------
 --
-if ( ( _ACTION == "gnu" ) or ( string.find( _ACTION or "", ".*-gcc" ) ) ) then
+function ActionUsesGCC()
+	return ("gmake" == _ACTION or "codelite" == _ACTION or "codeblocks" == _ACTION or "xcode3" == _ACTION)
+end
+
+if ActionUsesGCC() then
 	flags "extrawarnings"
 	buildoptions { "-W" }
 	-- Set the objects directories.
@@ -55,7 +57,7 @@ if ( os.get() == "windows" ) then											-- WINDOWS
 	--if ( _OPTIONS["lua-shared"] ) then
 		--defines { "LUA_BUILD_AS_DLL" }
 	--end
-	if _ACTION == "gnu" or string.find( _ACTION or "", ".*-gcc" ) then
+	if ActionUsesGCC() then
 		buildoptions { "-mthreads" }
 		linkoptions { "-mthreads" }
 	end
