@@ -88,3 +88,8 @@ configuration "Debug"
 
 configuration "Release"
 	defines	{ "NDEBUG" }
+
+configuration( "vs2008 or vs2010" )
+	-- multi-process building
+	flags( "NoMinimalRebuild" )
+	buildoptions( "/MP" )
