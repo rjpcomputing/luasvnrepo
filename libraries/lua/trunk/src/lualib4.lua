@@ -57,8 +57,8 @@ if ActionUsesGCC() then
 	objdir ".obj"
 end
 
-if ( ( _ACTION == "vs2005" ) or ( _ACTION == "vs2008" ) ) then
-	-- Windows and Visual C++ 2005/2008
+if ( ( _ACTION == "vs2005" ) or ( _ACTION == "vs2008" ) or ( _ACTION == "vs2010" ) ) then
+	-- Windows and Visual C++ 2005/2008/2010
 	defines { "_CRT_SECURE_NO_DEPRECATE" }
 end
 
