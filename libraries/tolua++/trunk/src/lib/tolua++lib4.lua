@@ -25,80 +25,89 @@
 
 -- OPTIONS -------------------------------------------------------------------
 --
-addoption( "tolua++-cpp", "Compile toLua++ library as C++ code." )
+newoption
+{
+	trigger = "tolua++-cpp",
+	description = "Compile toLua++ library as C++ code."
+}
 
 -- GENERAL SETUP -------------------------------------------------------------
 --
-package.name								= "toLua++Lib"
-if ( options["tolua++-cpp"] ) then
-	package.language						= "c++"
+project								"toLua++Lib"
+if _OPTIONS["tolua++-cpp"] then
+	language						"c++"
 else
-	package.language						= "c"
+	language						"c"
 end
-package.kind								= "lib"
-package.target								= "tolua++"
-package.config["Debug"].target				= "toluad++"
+kind								"StaticLib"
+targetname							"tolua++"
+targetdir( solution().basedir .. "/lib" )
+
 
 -- COMPILER SETTINGS ----------------------------------------------------------
 --
--- Build Flags
-package.buildflags							= { "seh-exceptions" }
-if ( options["dynamic-runtime"] ) then
-	package.config["Release"].buildflags	= { "no-symbols", "optimize" }
-else
-	package.config["Debug"].buildflags		= { "static-runtime" }
-	package.config["Release"].buildflags	= { "static-runtime", "no-symbols", "optimize" }
-end
 
--- Defined Symbols
-package.config["Debug"].defines				= { "DEBUG", "_DEBUG" }
-package.config["Release"].defines			= { "NDEBUG" }
+-- Build Flags
+flags								{ "SEH" }
 
 -- Set the objects directories.
-package.objdir								= ".obj"
+objdir								".obj"
 
 -- Files
-package.files								= {
-												matchfiles( "*.c","*.h" ),
-												"../../include/tolua++.h"
-											  }
+files								{
+										"*.c",
+										"*.h",
+										"../../include/tolua++.h"
+									}
 
 -- Include paths
 -- <toLua incude path>, <Lua's include path>
-package.includepaths						= { "../../include", "../../../lua" }
+includedirs							{ "../../include", "../../../lua" }
 
 -- LINKER SETTINGS ------------------------------------------------------------
 --
 -- Libraries to link against.
---package.links 							= { "" }
+--links 							{ "" }
 
 -- Linker directory paths.
---package.libpaths 							= { "" }
-
--- COMPILER SPECIFIC SETUP ----------------------------------------------------
---
-if ( ( target == "gnu" ) or ( string.find( target or "", ".*-gcc" ) ) ) then
-	table.insert( package.buildflags, { "extra-warnings" } )
-	table.insert( package.buildoptions, { "-W" } )
-end
-
-if ( ( target == "vs2005" ) or ( target == "vs2008" ) ) then
-	-- Windows and Visual C++ 2005/2008
-	table.insert( package.defines, "_CRT_SECURE_NO_DEPRECATE" )
-end
-
-if ( ( target == "vs2005" ) or ( target == "vs2003" ) or ( target == "vs2008" ) ) then
-	table.insert( package.config["Debug"].linkoptions, "/NODEFAULTLIB:LIBCMT" )
-end
+--libdirs 							{ "" }
 
 -- OPERATING SYSTEM SPECIFIC SETTINGS -----------------------------------------
 --
-if ( OS == "windows" ) then											-- WINDOWS
-	table.insert( package.defines, { "_WIN32", "WIN32", "_WINDOWS" } )
-elseif ( OS == "linux" ) then										-- LINUX
-	-- lib is only needed because Premake automatically adds the -fPIC to dlls
-	if ( "lib" == package.kind ) then
-		table.insert( package.buildoptions, { "-fPIC" } )
-	end
+if os.is( "windows" ) then											-- WINDOWS
+	defines			{ "_WIN32", "WIN32", "_WINDOWS" }
+elseif os.is( "linux" ) then										-- LINUX
+	links			{ "m", "dl" }
+	buildoptions	{ "-fPIC" }
 else																-- MACOSX
 end
+
+-- CONFIGURATIONS ----------------------------------------------------
+--
+configuration( "gmake or codelite or codeblocks or xcode3" )
+	flags( "ExtraWarnings" )
+	buildoptions( "-W" )
+
+configuration( "vs2008 or vs2010" )
+	-- multi-process building
+	flags( "NoMinimalRebuild" )
+	buildoptions( "/MP" )
+
+configuration( "vs*" )
+	-- Windows and Visual C++ 2005/2008
+	defines "_CRT_SECURE_NO_DEPRECATE"
+
+configuration( "Debug", "vs*" )
+	linkoptions { "/NODEFAULTLIB:LIBCMT" }
+
+configuration( "not dynamic-runtime" )
+	flags "StaticRuntime"
+
+configuration( "Release" )
+	defines { "NDEBUG" }
+	flags	"Optimize"
+
+configuration( "Debug" )
+	targetname "toluad++"
+	defines	{ "DEBUG", "_DEBUG" }
+	flags	"Symbols"

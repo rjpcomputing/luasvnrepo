@@ -24,18 +24,22 @@
 -- ---------------------------------------------------------------------------
 
 -- Project Settings
-project.name     = "toLua++"
-project.bindir   = "bin"
-project.libdir   = "lib"
+solution	"toLua++"
+targetdir	"bin"
 
 -- Configureations. All I am doing is reordering them so that
 -- it defaults to a Release build.
-project.configs = { "Release", "Debug" }
+configurations { "Release", "Debug" }
 
 -- Project Packages
-dopackage( "src/bin/tolua++exe" )
-dopackage( "src/lib/tolua++lib" )
-dopackage( "../lua/lualib" )				-- This path might need to change.
+dofile "src/bin/tolua++exe4.lua"
+dofile "src/lib/tolua++lib4.lua"
+dofile "../lua/lualib4.lua"				-- This path might need to change.
 
 -- Add options here.
-addoption( "dynamic-runtime", "Use the dynamicly loadable version of the runtime." )
+newoption
+{
+	trigger = "dynamic-runtime",
+	description = "Use the dynamicly loadable version of the runtime."
+}
+
