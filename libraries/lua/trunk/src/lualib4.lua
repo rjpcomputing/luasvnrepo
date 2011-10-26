@@ -106,7 +106,7 @@ else
 	configuration { "Debug" }
 		flags	{ "StaticRuntime", "Symbols" }
 	configuration { "Release" }
-		flags	{ "StaticRuntime", "optimize" }
+		flags	{ "StaticRuntime", "Optimize" }
 end
 
 
@@ -121,3 +121,5 @@ configuration( "vs2008 or vs2010" )
 	-- multi-process building
 	flags( "NoMinimalRebuild" )
 	buildoptions( "/MP" )
+
+configuration {}
