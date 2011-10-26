@@ -101,7 +101,7 @@ if ( _OPTIONS["dynamic-runtime"] ) then
 	configuration { "Debug" }
 		flags	{ "Symbols" }
 	configuration { "Release" }
-		flags { "optimize" }
+		flags { "Optimize" }
 else
 	configuration { "Debug" }
 		flags	{ "StaticRuntime", "Symbols" }
