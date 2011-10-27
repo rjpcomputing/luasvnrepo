@@ -91,7 +91,7 @@ end
 -- Build Flags
 if ( _OPTIONS["lua-shared"] ) then
 	if ActionUsesGCC() then
-		flags { "noimportlib" }
+		flags { "NoImportLib" }
 	end
 end
 
