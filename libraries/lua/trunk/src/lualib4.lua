@@ -51,7 +51,7 @@ function ActionUsesGCC()
 end
 
 if ActionUsesGCC() then
-	flags { "NoImportLib", "extrawarnings" }
+	flags { "NoImportLib", "ExtraWarnings" }
 	buildoptions { "-W" }
 	-- Set the objects directories.
 	objdir ".obj"
