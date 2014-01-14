@@ -44,9 +44,12 @@ if ActionUsesGCC() then
 	objdir	".obj"
 end
 
-if ( ( _ACTION == "vs2005" ) or ( _ACTION == "vs2008" ) or ( _ACTION == "vs2010" ) ) then
-	-- Windows and Visual C++ 2005/2008/2010
+if _ACTION and _ACTION:find( "vs20*" ) then
 	defines "_CRT_SECURE_NO_DEPRECATE"
+	
+	-- multi-process building
+	flags( "NoMinimalRebuild" )
+	buildoptions( "/MP" )
 end
 
 -- OPERATING SYSTEM SPECIFIC SETTINGS -----------------------------------------
@@ -89,7 +92,3 @@ configuration "Debug"
 configuration "Release"
 	defines	{ "NDEBUG" }
 
-configuration( "vs2008 or vs2010" )
-	-- multi-process building
-	flags( "NoMinimalRebuild" )
-	buildoptions( "/MP" )
