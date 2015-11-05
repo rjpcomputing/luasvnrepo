@@ -327,7 +327,7 @@ namespace lua
 		template< typename T >
 		state& push( T number )
 		{
-			lua_pushnumber( L, number );
+			lua_pushnumber( L, static_cast< lua_Number >( number ) );
 			return *this;
 		}
 
